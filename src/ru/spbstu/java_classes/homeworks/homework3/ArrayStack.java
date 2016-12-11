@@ -5,60 +5,62 @@ import java.util.Iterator;
 
 public class ArrayStack<T> implements Stack<T> {
     private Object[] stack;
-    private int pos = 0;
+    private int currentSize = 0;
 
     public ArrayStack() {
-        stack = new Object[0];
+        stack = new Object[8];
+    }
+
+    private void setCapacity(int capacity){
+        Object[] newStack = new Object[capacity];
+        System.arraycopy(stack, 0, newStack, 0, currentSize);
+        stack = newStack;
     }
 
     @Override
     public T push(T item) {
-        Object[] newStack = new Object[stack.length + 1];
-        System.arraycopy(stack, 0, newStack, 0, stack.length);
-
-        newStack[stack.length] = item;
-        stack = newStack;
-
+        if(stack.length == currentSize){
+            setCapacity(stack.length * 2);
+        }
+        currentSize++;
+        stack[currentSize - 1] = item;
         return item;
     }
 
     @Override
     public T pop() {
-        if(stack.length == 0){
+        if(isEmpty()){
             throw new EmptyStackException();
         }
-        else{
-            Object returnValue = stack[stack.length - 1];
 
-            Object[] newStack = new Object[stack.length - 1];
-            System.arraycopy(stack, 0, newStack, 0, stack.length - 1);
-            stack = newStack;
-
-            return (T)returnValue;
+        if(currentSize < stack.length / 4){
+            setCapacity(stack.length / 2);
         }
+
+        T returnValue = (T)stack[currentSize - 1];
+        stack[currentSize - 1] = null;
+
+        int ans = (currentSize <= 0) ? currentSize = 0 : currentSize--;
+
+        return (T)returnValue;
     }
 
     @Override
     public T peek() {
-        if(stack.length == 0){
+        if(isEmpty()){
             throw new EmptyStackException();
         }
-        else{
-            return (T)stack[stack.length - 1];
-        }
+        return (T)stack[currentSize - 1];
     }
 
     @Override
     public boolean isEmpty() {
-        if(stack.length == 0){
-            return true;
-        }
-        return false;
+        return currentSize == 0;
     }
 
     @Override
     public long getSize() {
-        return stack.length;
+        return currentSize;
     }
 
     @Override
@@ -68,7 +70,7 @@ public class ArrayStack<T> implements Stack<T> {
 
              @Override
              public boolean hasNext() {
-                 return nextIndex < stack.length;
+                 return nextIndex < currentSize;
              }
 
              @Override
